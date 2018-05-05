@@ -1,6 +1,10 @@
+//Programmer: Luis gutierrez
+//Section: 3334 Monday / Wednesday
+//Phase 1+2?
 
 #include <stdio.h>
 #include <string.h> //for strlen() and strcmp()
+#include <ctype.h>
 #include <stdbool.h> // for booleans
 #include <stdlib.h> //for system commands
 
