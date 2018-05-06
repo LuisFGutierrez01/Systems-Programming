@@ -55,7 +55,7 @@ typedef struct {
 	char *operand;
 } TOKEN; //this is the type name that will be used
 
-TOKEN token; //declaring the name of the token type
+TOKEN chip; //declaring the name of the token type
 
 typedef struct {
 	char OP[7];
@@ -326,7 +326,7 @@ void addLabel(int locCounter)
 	if(labelsCounter >= 500) return; //Stop adding more
 
 	static int labelCounter = 0;
-	strcpy(lab[labelCounter].label, token.label);
+	strcpy(lab[labelCounter].label, chip.label);
 	lab[labelCounter++].address = locCounter;
 	labelsCounter++;
 }
@@ -340,7 +340,7 @@ bool labelIsFound()
 {
 	for(int i = 0; i < labelsCounter; i++)
 	{
-		if(strcmp(lab[i].label, token.label) == 0) return true;
+		if(strcmp(lab[i].label, chip.label) == 0) return true;
 	}
 	
 	return false;
@@ -389,9 +389,9 @@ void loadFile(char *param1, char *buff)
 	
 	
 	//memory allocation
-	token.label = (char *) malloc(6);
-	token.mnemonic = (char *) malloc(6);
-	token.operand = (char *) malloc(6);
+	chip.label = (char *) malloc(6);
+	chip.mnemonic = (char *) malloc(6);
+	chip.operand = (char *) malloc(6);
 	
 	//Keep track of past tokens
 	char *pastToken; 
@@ -417,7 +417,7 @@ void loadFile(char *param1, char *buff)
 		if(labelHERE)
 		{
 			int meme = 0; //counter repository
-			strcpy(token.label, token); //Sets label
+			strcpy(chip.label, token); //Sets label
 			token = strtok(NULL, " \t\r\n\v\f"); // gets next word on the line
 			
 			if(labelsCounter > 0)
@@ -425,54 +425,54 @@ void loadFile(char *param1, char *buff)
 				if(labelsCounter > 500) 
 					_ERROR = TO_MANY_LABELS;
 				
-				if(strcmp(token.label, "START") == 0) 
+				if(strcmp(chip.label, "START") == 0) 
 					_ERROR = MIS_START;
 				
 				if(labelIsFound() && _ERROR == NO_ERROR)
 					_ERROR = DUP_LABEL;
 			}
 			
-			strcpy(token.mnemonic, token); //sets mnemonics
+			strcpy(chip.mnemonic, token); //sets mnemonics
 			
 			token = strtok(NULL, " \t\r\n\v\f");
 
-			strcpy(token.operand, token); //sets operands
+			strcpy(chip.operand, token); //sets operands
 
-			if(strcmp(token.mnemonic, "START") == 0) //Checks for START at the start
+			if(strcmp(chip.mnemonic, "START") == 0) //Checks for START at the start
 			{
-				startingAddress = atoi(token.operand);
+				startingAddress = atoi(chip.operand);
 				addressCounter = startingAddress;
 			}
 
 			
 			//label check
-			if(token.label[0] < 'A' || token.label[0] > 'Z') _ERROR = INVALID_LABEL;
+			if(chip.label[0] < 'A' || chip.label[0] > 'Z') _ERROR = INVALID_LABEL;
 
 			//mnemonic check
 			if( _ERROR == NO_ERROR)
 			{
 				for(int x = 0; x < DISTANCE(opcodes); ++x)
 				{
-					if(strcmp(opcodes[x].OP, token.mnemonic) == 0) 
+					if(strcmp(opcodes[x].OP, chip.mnemonic) == 0) 
 						_Error = false;
 				}
 				
-				if(strcmp(token.mnemonic, "START") == 0) 
+				if(strcmp(chip.mnemonic, "START") == 0) 
 					_Error = false;
 				
-				else if(strcmp(token.mnemonic, "END") == 0) 
+				else if(strcmp(chip.mnemonic, "END") == 0) 
 					_Error = false;
 				
-				else if(strcmp(token.mnemonic, "BYTE") == 0) 
+				else if(strcmp(chip.mnemonic, "BYTE") == 0) 
 					_Error  = false;
 				
-				else if(strcmp(token.mnemonic, "WORD") == 0)
+				else if(strcmp(chip.mnemonic, "WORD") == 0)
 					_Error = false;
 				
-				else if(strcmp(token.mnemonic, "RESB") == 0)  
+				else if(strcmp(chip.mnemonic, "RESB") == 0)  
 					_Error = false;
 				
-				else if(strcmp(token.mnemonic, "RESW") == 0) 
+				else if(strcmp(chip.mnemonic, "RESW") == 0) 
 					_Error = false;
 				
 			}
@@ -481,35 +481,35 @@ void loadFile(char *param1, char *buff)
 			if(_Error && _ERROR == NO_ERROR) 
 				_ERROR = INVALID_MNEMONIC;
 			
-			if(strcmp(token.mnemonic, "WORD") == 0)
+			if(strcmp(chip.mnemonic, "WORD") == 0)
 			{
 				meme = 2;
 			}
 			
-			if(strcmp(token.mnemonic, "RESW") == 0)
+			if(strcmp(chip.mnemonic, "RESW") == 0)
 			{
-				meme = 3 * (int)strtol(token.operand, NULL, 10);
+				meme = 3 * (int)strtol(chip.operand, NULL, 10);
 			}
 			
-			if(strcmp(token.mnemonic, "RESB") == 0)
+			if(strcmp(chip.mnemonic, "RESB") == 0)
 			{
-				meme = (int)strtol(token.operand, NULL, 10);
+				meme = (int)strtol(chip.operand, NULL, 10);
 				meme = toHex(meme);
 			}
 			
-			if(strcmp(token.mnemonic, "BYTE") == 0 && _ERROR == NO_ERROR)
+			if(strcmp(chip.mnemonic, "BYTE") == 0 && _ERROR == NO_ERROR)
 			{
-				if(token.operand[0] != 'X' && token.operand[0] != 'C') 
+				if(chip.operand[0] != 'X' && chip.operand[0] != 'C') 
 					_ERROR = INVALID_OPERAND; //this means its not AC or X
 				
 				else
 				{
-					if(token.operand[0] == 'C')
+					if(chip.operand[0] == 'C')
 					{
 						int charCount = 0;
 						int index = 2;
 						
-						while(token.operand[index++] != '\'')
+						while(chip.operand[index++] != '\'')
 						{
 							charCount++;
 						}
@@ -517,18 +517,18 @@ void loadFile(char *param1, char *buff)
 						meme += charCount * 2;
 					}
 					
-					else if(token.operand[0] == 'X')
+					else if(chip.operand[0] == 'X')
 					{
 						int index = 1;
 						char *hex = (char*) malloc(6); 
 
 						int iHex = 0;
 
-						while(token.operand[index++] != '\0')
+						while(chip.operand[index++] != '\0')
 						{
-							if(token.operand[index] == '\'') 
+							if(chip.operand[index] == '\'') 
 								continue; // this is a safety net
-							hex[iHex] = token.operand[index]; //takes whats inside
+							hex[iHex] = chip.operand[index]; //takes whats inside
 							iHex++;
 						}
 						
@@ -537,16 +537,16 @@ void loadFile(char *param1, char *buff)
 					}
 				}
 				
-				if(token.operand[1] != '\'' ||  token.operand[strlen(token.operand)-1] != '\'')
+				if(chip.operand[1] != '\'' ||  chip.operand[strlen(chip.operand)-1] != '\'')
 					_ERROR = INVALID_OPERAND; //checks for missing 's
 			}
 			
 			
-			if(strcmp(token.mnemonic, "START") == 0 || strcmp(token.mnemonic, "RESB") == 0 || strcmp(token.mnemonic, "RESW") == 0)
+			if(strcmp(chip.mnemonic, "START") == 0 || strcmp(chip.mnemonic, "RESB") == 0 || strcmp(chip.mnemonic, "RESW") == 0)
 			{
-				for(int i = 0; i < strlen(token.operand); ++i)
+				for(int i = 0; i < strlen(chip.operand); ++i)
 				{
-					if(!isdigit(token.operand[i])) //I DONT KNOW THIS COMMAND
+					if(!isdigit(chip.operand[i])) //I DONT KNOW THIS COMMAND
 					{
 					    _ERROR = INVALID_OPERAND;
 						break;
@@ -556,26 +556,26 @@ void loadFile(char *param1, char *buff)
 			
 			
 			//intermediate
-			fprintf(intermediate, "%d\t %s\t %s\t %s\t %d\n", addressCounter, token.label, token.mnemonic, token.operand, _ERROR);
-			fprintf(symbolTable, "%d\t %s\n", addressCounter, token.label);
+			fprintf(intermediate, "%d\t %s\t %s\t %s\t %d\n", addressCounter, chip.label, chip.mnemonic, chip.operand, _ERROR);
+			fprintf(symbolTable, "%d\t %s\n", addressCounter, chip.label);
 			
 			//adds labels
 			addLabel(addressCounter);
 			
 			//Incrementation
-			if(strcmp(token.mnemonic, "BYTE") == 0) 
+			if(strcmp(chip.mnemonic, "BYTE") == 0) 
 				addressCounter += meme;
 			
-			else if(strcmp(token.mnemonic, "RESB") == 0) 
+			else if(strcmp(chip.mnemonic, "RESB") == 0) 
 				addressCounter += meme;
 			
-			else if(strcmp(token.mnemonic, "RESW") == 0) 
+			else if(strcmp(chip.mnemonic, "RESW") == 0) 
 				addressCounter += meme;
 			
-			else if(strcmp(token.mnemonic, "WORD") == 0) 
+			else if(strcmp(chip.mnemonic, "WORD") == 0) 
 				addressCounter += meme;
 			
-			else if(strcmp(token.mnemonic, "START") > 0 || strcmp(token.mnemonic, "START") < 0) 
+			else if(strcmp(chip.mnemonic, "START") > 0 || strcmp(chip.mnemonic, "START") < 0) 
 				addressCounter += 3;
 
 
@@ -591,17 +591,17 @@ void loadFile(char *param1, char *buff)
 				continue; //continues on the loop
 			}
 
-			strcpy(token.mnemonic, token);
+			strcpy(chip.mnemonic, token);
 			token = strtok(NULL, " \t\r\n\v\f");
 			
 			if(token == NULL)
 			{
 				 _ERROR = MISS_OPERAND;
-				strcpy(token.operand, " ");	
+				strcpy(chip.operand, " ");	
 			}
 			
 			else 
-				strcpy(token.operand, token);
+				strcpy(chip.operand, token);
 			
 			
 			
@@ -611,37 +611,37 @@ void loadFile(char *param1, char *buff)
 			{
 				for(int x = 0; x < DISTANCE(opcodes); ++x)
 				{
-					if(strcmp(opcodes[x].OP, token.mnemonic) == 0) //same ones
+					if(strcmp(opcodes[x].OP, chip.mnemonic) == 0) //same ones
 					{
 						_Error = false;
 						break;
 					}
 				}
 				
-				if(strcmp(token.mnemonic, "START") == 0)
+				if(strcmp(chip.mnemonic, "START") == 0)
 					_Error = false;
-				else if(strcmp(token.mnemonic, "END") == 0)
+				else if(strcmp(chip.mnemonic, "END") == 0)
 					_Error = false;
-				else if(strcmp(token.mnemonic, "BYTE") == 0) 
+				else if(strcmp(chip.mnemonic, "BYTE") == 0) 
 					_Error  = false;
-				else if(strcmp(token.mnemonic, "WORD") == 0) 
+				else if(strcmp(chip.mnemonic, "WORD") == 0) 
 					_Error = false;
-				else if(strcmp(token.mnemonic, "RESB") == 0)  
+				else if(strcmp(chip.mnemonic, "RESB") == 0)  
 					_Error = false;
-				else if(strcmp(token.mnemonic, "RESW") == 0)  
+				else if(strcmp(chip.mnemonic, "RESW") == 0)  
 					_Error = false;
 			}
 
 			if(_Error) //OBFUSCATED CODE
 				_ERROR = INVALID_MNEMONIC;
 			
-			if(strcmp(token.operand, "BYTE") == 0 && _ERROR == NO_ERROR) //counter has been added
+			if(strcmp(chip.operand, "BYTE") == 0 && _ERROR == NO_ERROR) //counter has been added
 			{
-				if(token.operand[1] != '\'' || token.operand[strlen(token.operand) - 1] != '\'') //THIS CHECKS FOR THE ''''''''''s
+				if(chip.operand[1] != '\'' || chip.operand[strlen(chip.operand) - 1] != '\'') //THIS CHECKS FOR THE ''''''''''s
 					_ERROR = INVALID_OPERAND;
 			}
 
-			fprintf(intermediate, "%d\t\t %s\t %s\t %d \n", addressCounter, token.mnemonic, token.operand, _ERROR);
+			fprintf(intermediate, "%d\t\t %s\t %s\t %d \n", addressCounter, chip.mnemonic, chip.operand, _ERROR);
 			addressCounter += 3;
 		}
 		//this is an assembler call set for phase 3, it doesnt do anything right now
