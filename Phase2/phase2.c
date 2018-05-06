@@ -406,7 +406,7 @@ void loadFile(char *params1, char *buff)
 		int _ERROR = NO_ERROR;
 		
 		if(line[0] == ' ' || line[0] == '\t') 
-			labelFound = false;
+			labelHERE = false;
 		
 		if(line[0] == '.') 
 			continue;
