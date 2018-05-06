@@ -1,144 +1,174 @@
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//Programmer: Luis Gutierrez
+//Instructor: Dr. Egle
+//Section: 3334 Monday / Wednesday
+//Phase 2
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 #include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <stdbool.h>
+#include <stdbool.h> // for booleans
+#include <string.h> //for strlen() and strcmp()
 #include <ctype.h>
+#include <stdlib.h> //for system commands
+#define DISTANCE(x) (sizeof(x) / sizeof(x[0]))
 
-#define NUMELEM(x) (sizeof(x) / sizeof(x[0]))
 
 
-void split(char *, char *, char *, char *, int *); //Splits Line into words
-int getcmd(char *, int *); //Returns Value for giving command
-void loadFile(char *,char *); //Load file (Not Implemented yet)
-void exe(char *); //Execute laoded file
-void db(); //Opens in debug mode
-void dmp(char *, char *); //Dump file
-void assemble(FILE *sTable, FILE *inter); //Assemble SIC files
 
-int decToHexa(int n);
+void assemble(FILE *sTable, FILE *inter); //Assembles the SIC FILES
+int getcmd(char *, int *); //Returns int and letter for cases
+void debug(); //Opens debug
+void loadFile(char *,char *); //Not Implemented yet
+void dump(char *, char *); //Dump file
+void exe(char *); //Execute loaded file
+void split(char *, char*, char*, char*, int*); //Splits Line into words
 
-void addLabel(); //Adds label to Struct
-//void addAddress(int); //Add Address of label to struct
-bool labelIsFound();
 
-void err(); //show Error 
-void hlp(); //Show help
 
-FILE *source, *intermediate, *opcode, *symbolTable; //FILES
 
-//Labels
+
+
+int toHex(int n); //Converts decimal to hex
+
+void addLabel(); //Adds label to the Struct
+bool labelIsFound(); //Checks if there is a label
+
+void error(); //Show error prompt 
+void help(); //Show help prompt
+
+FILE *source, *intermediate, *opcode, *symbolTable; //files used //////////DONT FORGET TO ADD THEM//////////
+
+//these are the labels       is this format allowed?
 typedef struct{
 	char label[10];
-	int address;
-}LABELS;
-LABELS lab[500];
-int labelsCounter = 0; //Keep track of how many label are in the system
+	int address;  
+}LABELS; //this is the type name that will be used
 
+
+LABELS lab[500]; //size
+int labelsCounter = 0; //how many labels in the system
+
+//allows use of enums ish
 typedef struct {
 	char *label;
-	char *mnemonic;
+	char *mnemonic; //pointers
 	char *operand;
-} TOKEN;
+} TOKEN; //this is the type name that will be used
 
-TOKEN tok;
+TOKEN token; //declaring the name of the token type
 
 typedef struct {
 	char OP[7];
 	short FORM;
-} OPCODE;
+} OPCODE; //this is the type name that will be used
 
-//Short should be hexadecimal
-OPCODE Ops[] = {{"ADD", 18},   {"AND", 58},    {"COMP", 28},   {"DIV", 24},
-                {"J", 3},     {"JEQ", 3},    {"JGT", 3},    {"JLT", 3},
-                {"JSUB", 3},   {"LDA", 3},    {"LDCH", 3},   {"LDL", 3},
-                {"LDX", 3},   {"MUL", 3},    {"OR", 3},    {"RD", 3},
-                {"RSUB", 3},   {"STA", 3},     {"STCH", 3},   {"STL", 3},
-                {"STX", 3}, {"SUB", 3}, {"TD", 3}, {"TIX", 3}, {"WD", 3}};
+//short is in hex
+OPCODE opcode[] = {{"ADD", 18}, {"AND", 58}, {"COMP", 28}, {"DIV", 24}, {"J", 3}, {"JEQ", 3}, {"JGT", 3}, {"JLT", 3},
+				{"JSUB", 3}, {"LDA", 3}, {"LDCH", 3}, {"LDL", 3}, {"LDX", 3}, {"MUL", 3}, {"OR", 3}, {"RD", 3},
+                {"RSUB", 3}, {"STA", 3}, {"STCH", 3}, {"STL", 3}, {"STX", 3}, {"SUB", 3}, {"TD", 3}, {"TIX", 3}, {"WD", 3}};
 
+				
+				
+				
+				
 int main()
 {
-	typedef enum {ERROR = -1,LOAD,EXECUTE,DEBUG,DUMP,DIRECTORY,ASSEMBLE,HELP,EXIT} COMMAND; //Each command get enumed
-	char line[80], cmd[50], p1[50], p2[50];
-	char buff[255];
+	//can use this to define enums in c ALL CAPS BECUASE CASES
 	int len, n;
-	while(true) //Loops Until user enters "Exit"
-	{
-	printf("Hail Master$ ");
-	fgets(line,80, stdin); //Gets input from user
-
-	len = strlen(line) - 1;
-	if(line[len] == '\n')
-		line[len] = '\0';
-
-	split(line,cmd,p1,p2,&n); //Split Line into Words [Command] [Parameter1] [Parameter2]
+	typedef enum {ERROR = -1,LOAD,EXECUTE,DEBUG,DUMP,DIRECTORY,ASSEMBLE,HELP,EXIT} COMMAND;  
+	char ans[80], cmd[50], param1[50], param2[50];
+	char buff[255]; //buffer to make sure they dont go over
 	
-	switch(getcmd(cmd, &n)) //Gets the value, and executes
+	
+	
+	
+	//Loops Until user enters "Exit"
+	while(true) 
 	{
-		case LOAD:
-			loadFile(p1,buff);
-			break;
-		case EXECUTE:
-			exe(buff);
-			break;
-		case DEBUG:
-			db();
-			break;
-		case DUMP:
-			dmp(p1,p2);
-			break;
-		case DIRECTORY:
-			system("ls");
-			break;
-		case ASSEMBLE:
-			//assemble(p1);
-			break;
-		case HELP:
-			hlp();
-			break;
-		case EXIT:
-			exit(0);
-			break;
-		case ERROR:
-			err();
-			break;
-		default:
-			printf("'%s': not found, type 'help'\n", cmd);
-			break;
+		
+		printf("Enter your command:  ");
+		fgets(ans,80, stdin); //Gets input from user
+
+		len = strlen(ans) - 1;
+		
+		//checks if they did not enter anything
+		if(ans[len] == '\n') 
+			ans[len] = '\0';
+
+		split(ans,cmd,param1,param2,&n); //splits answer into words command, parameter1, parameter2
+		
+		
+		//gets command using cases
+		switch(getcmd(cmd, &n)) 
+		{
+			case LOAD:
+				loadFile(param1,buff);
+				break;
+				
+			case EXECUTE:
+				exe(buff);
+				break;
+				
+			case DEBUG:
+				debug();
+				break;
+				
+			case DUMP:
+				dump(param1,param2);
+				break;
+				
+			case HELP:
+				help();
+				break;
+				
+			case ASSEMBLE:
+				//DOES NOTHING
+				break;
+				
+			case DIRECTORY:
+				system("ls");
+				break;
+				
+			case EXIT:
+				exit(0);
+				break;
+				
+			case ERROR:
+				error();
+				break;
+				
+			default:
+				printf("'%s': is not understood, type 'help' for info.\n", cmd);
+				break;
+		}
 	}
-	}
-
-
-	//Testing
-	printf("\n%d things on this line\n", n);
-	printf("Command: %s\n", cmd);
-	printf("Parameter 1: %s\n", p1);
-	printf("parameter 2: %s\n", p2);
-
 
 	return 0;
 }
 
-int decToHexa(int n)
+
+
+
+int toHex(int n)
 {   
-    // char array to store hexadecimal number
+    // char array stores hexadimal numbers
     char hexaDeciNum[100];
-     
-    // counter for hexadecimal number array
     int i = 0;
+	
     while(n!=0)
     {   
         // temporary variable to store remainder
         int temp  = 0;
          
-        // storing remainder in temp variable.
+        // remainder
         temp = n % 16;
          
-        // check if temp < 10
         if(temp < 10)
         {
             hexaDeciNum[i] = temp + 48;
             i++;
         }
+		
         else
         {
             hexaDeciNum[i] = temp + 55;
@@ -147,376 +177,477 @@ int decToHexa(int n)
          
         n = n/16;
     }
-    //Reverse
-    int len = strlen(hexaDeciNum) - 1;
-    char temp[100];
-    int tempIndex = 0;
-    while(len >= 0)
+	
+    //need to reverse the array
+    char tempArray[100];
+	int tempIndex = 0;
+	int length = strlen(hexaDeciNum) - 1;
+	
+    while(length >= 0)
     {
-    	temp[tempIndex++] = hexaDeciNum[len--];
+    	tempArray[tempIndex++] = hexaDeciNum[length--];
     }
+	
     return (int)strtol(temp, NULL, 10);
 }
 
-void split(char *str, char *c, char *p1, char *p2, int *n) //Splits Line into words
+
+
+
+
+void split(char *str, char *c, char *param1, char *param2, int *n) //splits the answer into words
 {
-	c[0] = p1[0] = p2[0] = '\0'; //Start Everything on NULL
-	//Initialized
-	int addinx = 0, count = 1;
-	bool cmd = false, param1 = false, param2 = false;
+	bool param1 = false, param2 = false, cmd = false;
+	c[0] = param1[0] = param2[0] = '\0'; //initializes with empty characters
+	int indexCtr = 0, count = 1; //used to keep track of and manage the index pointer
 	
-	//Loops the whole line
-	for(int indx = 0; indx < 80; indx++)
+	//Loops through the entire line
+	//80 because of the size of the buffer
+	for(int i = 0; i < 80; i++)
 	{
-		if(str[indx] == '\n' || str[indx] == '\0'){break;} //Exits loop if Next character is "New line"
+		if(str[i] == '\n' || str[i] == '\0')
+			{break;} //breaks if the next charcter is a new line 
 		
-		if(str[indx] == ' ') //Check if Character is a space
+		if(str[i] == ' ') //checks for space
 		{
-			if(c[0] != '\0'){cmd = true;} // If command array is not empty Change bool to true
-			if(p1[0] != '\0'){param1 = true;}// If Parameter array is not empty change bool to true 
-			if(p2[0] != '\0'){param2 = true;}// if parameter2 array is not emty change bool to true
-			addinx = 0;//Reset Index Used for [Command] [P1][p2]
+			if(c[0] != '\0')
+			{cmd = true;} // if array is empty
+		
+			if(param1[0] != '\0')
+			{param1 = true;}// if param1 is epmty
+		
+			if(param2[0] != '\0')
+			{param2 = true;}// if param2 is empty
+		
+			indexCtr = 0;//reset index
+			
 			continue;//Continues with the loop
 		}
 
-		else if(str[indx] != ' ') //If current line index is not space -> add to The Current Array
+		else if(str[i] != ' ') //if current is not a space, then do ....
 		{
-			if(str[indx + 1] == ' ' && str[indx + 2] != ' ') //Check at space if next is not space add to count
+			if(str[i + 1] == ' ' && str[i + 2] != ' ') //checks for forward spaces
 				count++;
-			if(cmd == false) // Goes into Command array if False
+				
+			if(cmd == false) // goes into c 
 			{
-				c[addinx] = str[indx];
-				addinx++;
-				c[addinx] = '\0';
+				c[indexCtr] = str[i];
+				indexCtr++;
+				c[indexCtr] = '\0';
 				continue;
 			}
-			if(param1 == false) // Goes into param1  array if false
+			
+			if(param1 == false) // goes into param1
 			{
-				p1[addinx] = str[indx];
-				addinx++;
-				p1[addinx] = '\0';
+				param1[indexCtr] = str[i];
+				indexCtr++;
+				param1[indexCtr] = '\0';
 				continue;
 			}
-			if(param2 == false) // Goes into param2 array if false
+			
+			if(param2 == false) // Goes into param2
 			{
-				p2[addinx] = str[indx];
-				addinx++;
-				p2[addinx] = '\0';
+				param2[indexCtr] = str[i];
+				indexCtr++;
+				param2[indexCtr] = '\0';
 				continue;
 			}
 		}		
 	}
-	*n = count; //Set N to count, count being the number of words counted + 1 -.-
+	
+	*n = count; //being used to count
 }
 
-int getcmd(char *c, int *n) //Return a value to the corresponding Command
+
+
+
+
+
+//Return an int for cases in the command prompt
+int getcmd(char *c, int *n) 
 {
-	if(strcmp(c, "load") == 0){
-		if(*n - 1 >= 2 || *n - 1 < 1) return -1; //Check for correct number of paramete
+	
+	//Check for correct number of parameter
+	if(strcmp(c, "load") == 0)
+	{
+		if(*n - 1 >= 2 || *n - 1 < 1) 
+			return -1;
+		
 		return 0;
 	}
-	else if(strcmp(c, "execute") == 0)return 1;
-	else if(strcmp(c, "debug") == 0)return 2;
-	else if(strcmp(c, "dump") == 0){
-		if(*n - 1 >= 3 || *n - 1 <= 1) return -1; //Checks for correct number of parameter
+	
+	else if(strcmp(c, "execute") == 0 || strcmp(c, "exe") == 0)
+		return 1;
+	
+	else if(strcmp(c, "debug") == 0)
+		return 2;
+	
+	else if(strcmp(c, "dump") == 0)
+	{
+		//Checks for correct number of parameter
+		if(*n - 1 >= 3 || *n - 1 <= 1) 
+			return -1; 
+		
 		return 3;
 	}
-	else if(strcmp(c, "dir") == 0 || strcmp(c, "directory")==0) return 4;
-	else if(strcmp(c, "assemble") == 0){
-		if(*n - 1 >= 2 || *n - 1 < 1) return -1; //Checks for correct numbe of parameters
+	
+	else if(strcmp(c, "help") == 0) 
+		return 4;
+	
+	else if(strcmp(c, "assemble") == 0 || strcmp(c, "ass") == 0)
+	{
+		if(*n - 1 >= 2 || *n - 1 < 1) 
+			return -1; //Checks for correct number of parameters
+		
 		return 5;
 	}
-	else if(strcmp(c, "help") == 0) return 6;
-	else if(strcmp(c, "exit") == 0){
-		if(*n >1) return -1;
+	
+	else if(strcmp(c, "dir") == 0 || strcmp(c, "directory") == 0) 
+		return 6;
+	
+	else if(strcmp(c, "exit") == 0)
+	{
+		if(*n >1) 
+			return -1;
+		
 		return 7;
 	}
-	return -2;
+
+	return -2; //none met error
 }
+
+
+
+
+
 
 void addLabel(int locCounter)
 {
 	if(labelsCounter >= 500) return; //Stop adding more
 
 	static int labelCounter = 0;
-	strcpy(lab[labelCounter].label, tok.label);
+	strcpy(lab[labelCounter].label, token.label);
 	lab[labelCounter++].address = locCounter;
 	labelsCounter++;
 }
+
+
+
+
+
 
 bool labelIsFound()
 {
 	for(int i = 0; i < labelsCounter; i++)
 	{
-		if(strcmp(lab[i].label, tok.label) == 0) return true;
+		if(strcmp(lab[i].label, token.label) == 0) return true;
 	}
 	
 	return false;
 }
 
+
+
+
+
+
 void assemble(FILE *sTable, FILE *inter)
 {
-
+	// not implemented yet
 }
 
-void loadFile(char *p1, char *buff) //Loads a files ITS ASSEMBLE :-(
+
+
+
+
+//loads files
+void loadFile(char *param1, char *buff) 
 {
-	typedef enum { NOERROR = 0, INVALID_MNEMONIC, INVALID_LABEL, INVALID_OPERAND, DUP_LABEL, MIS_START, MISS_OPERAND, TO_MANY_LABELS, PROG_LONG } ERRORS;
-//	FILE *source, *intermediate, *opcode, *symbolTable; // Creats the Files pointer
-	char line[500]; // String for each line in the Files "p1"
-	char *token; 	// Created for STRTOK
+	//ITS ALL ENUMS
+	typedef enum { NO_ERROR = 0, INVALID_MNEMONIC, INVALID_LABEL, INVALID_OPERAND, DUP_LABEL, MIS_START, MISS_OPERAND, TO_MANY_LABELS, PROG_LONG } ERRORS;
 	int startingAddress, addressCounter;
+	char line[500]; // String for each line in the files "param1"
+	char *token; 	//STRTOK
+	
 	const char *symbols[500]; //Keep track of labels
+	
 	//Opening READ only FILES
-	source = fopen(p1, "r");
+	source = fopen(param1, "r");
 	opcode = fopen("opcode.txt","r");
+	
+	
 	//Opening Write Files
 	intermediate = fopen("intermediate.txt","w");
 	symbolTable = fopen("symbolTable.txt","w");
+	
+	//checks if files open
 	if(source == NULL || opcode == NULL || intermediate == NULL || symbolTable == NULL) 
 	{
-		printf("File did not opened Correctly\n"); //Checking If Files Opened Correctly
+		printf("File did not opened Correctly\n"); 
 		return;
 	}
-
-	//token = strtok(line, " \t");
 	
-	//=============================
-	//Allocating memory
-	tok.label = (char *) malloc(6);
-	tok.mnemonic = (char *) malloc(6);
-	tok.operand = (char *) malloc(6);
-	//=============================
 	
-	char *pastToken; //Keep track of past tokens
+	//memory allocation
+	token.label = (char *) malloc(6);
+	token.mnemonic = (char *) malloc(6);
+	token.operand = (char *) malloc(6);
+	
+	//Keep track of past tokens
+	char *pastToken; 
 	token = line;	
-	int labelCounter = 0; //Keep track of labelss
-	//Starts Reading from "p1"
+	int labelCounter = 0; //Keep track of labels
+	
+	
+	//reading from "param1"
 	while(fgets(line, 500, source))
 	{
-		bool labelFound = true, _Error = true;
-		int _ERROR = NOERROR;
+		bool labelHERE = true, _Error = true;
+		int _ERROR = NO_ERROR;
 		
-		if(line[0] == ' ' || line[0] == '\t') labelFound = false;
-		if(line[0] == '.') continue;
+		if(line[0] == ' ' || line[0] == '\t') 
+			abelFound = false;
+		
+		if(line[0] == '.') 
+			continue;
 
 		token = strtok(line, " \t\r\n\v\f");
-		
 		line[strcspn(line, "\n")] = '\0';
 
-		if(labelFound)
+		if(labelHERE)
 		{
-			int resMem = 0;
-			strcpy(tok.label, token); //Sets label
+			int meme = 0; //counter repository
+			strcpy(token.label, token); //Sets label
 			token = strtok(NULL, " \t\r\n\v\f"); // gets next word on the line
 			
 			if(labelsCounter > 0)
 			{
-				if(labelsCounter > 500) _ERROR = TO_MANY_LABELS;
-				if(strcmp(tok.label, "START") == 0) _ERROR = MIS_START;
-				if(labelIsFound() && _ERROR == NOERROR)
+				if(labelsCounter > 500) 
+					_ERROR = TO_MANY_LABELS;
+				
+				if(strcmp(token.label, "START") == 0) 
+					_ERROR = MIS_START;
+				
+				if(labelIsFound() && _ERROR == NO_ERROR)
 					_ERROR = DUP_LABEL;
 			}
-			strcpy(tok.mnemonic, token); //sets mnemonic
+			
+			strcpy(token.mnemonic, token); //sets mnemonics
 			
 			token = strtok(NULL, " \t\r\n\v\f");
 
-			strcpy(tok.operand, token); //sets operand
+			strcpy(token.operand, token); //sets operands
 
-			if(strcmp(tok.mnemonic, "START") == 0) //Checks if "START" is present on the line
+			if(strcmp(token.mnemonic, "START") == 0) //Checks for START at the start
 			{
-				//printf("tok.operand %s\n", tok.operand);
-				startingAddress = atoi(tok.operand);
-				//printf("startinAddress %d\n", startingAddress);
+				startingAddress = atoi(token.operand);
 				addressCounter = startingAddress;
-				//printf("addressCounter %d\n", addressCounter);
 			}
 
-			//if(strcmp(tok.mnemonic, "START") == 0|| strcmp(tok.mnemonic, "STL") == 0) addressCounter = startingAddress;
-
-			//Checking for ERRORS
-			//======================================
-			//Checking LABEL ERROR/
-			if(tok.label[0] < 'A' || tok.label[0] > 'Z') _ERROR = INVALID_LABEL;
-			//======================================
-
-			//======================================
-			//Checking if MNEMONIC is Wrong
 			
-			if( _ERROR == NOERROR)
+			//label check
+			if(token.label[0] < 'A' || token.label[0] > 'Z') _ERROR = INVALID_LABEL;
+
+			//mnemonic check
+			if( _ERROR == NO_ERROR)
 			{
-				for(int x = 0; x < NUMELEM(Ops); ++x)
+				for(int x = 0; x < DISTANCE(opcode); ++x)
 				{
-					if(strcmp(Ops[x].OP, tok.mnemonic) == 0) //If its the same
+					if(strcmp(opcode[x].OP, token.mnemonic) == 0) 
 						_Error = false;
 				}
-				if(strcmp(tok.mnemonic, "START") == 0) _Error = false;
-				else if(strcmp(tok.mnemonic, "END") == 0) _Error = false;
-				else if(strcmp(tok.mnemonic, "BYTE") == 0) _Error  = false;
-				else if(strcmp(tok.mnemonic, "WORD") == 0) _Error = false;
-				else if(strcmp(tok.mnemonic, "RESB") == 0)  _Error = false;
-				else if(strcmp(tok.mnemonic, "RESW") == 0)  _Error = false;
+				
+				if(strcmp(token.mnemonic, "START") == 0) 
+					_Error = false;
+				
+				else if(strcmp(token.mnemonic, "END") == 0) 
+					_Error = false;
+				
+				else if(strcmp(token.mnemonic, "BYTE") == 0) 
+					_Error  = false;
+				
+				else if(strcmp(token.mnemonic, "WORD") == 0)
+					_Error = false;
+				
+				else if(strcmp(token.mnemonic, "RESB") == 0)  
+					_Error = false;
+				
+				else if(strcmp(token.mnemonic, "RESW") == 0) 
+					_Error = false;
+				
 			}
-			if(_Error && _ERROR == NOERROR) _ERROR = INVALID_MNEMONIC;
-			//======================================
 			
-			//======================================
-			//Checking for Directives
-			if(strcmp(tok.mnemonic, "WORD") == 0)
+			//directive check
+			if(_Error && _ERROR == NO_ERROR) 
+				_ERROR = INVALID_MNEMONIC;
+			
+			if(strcmp(token.mnemonic, "WORD") == 0)
 			{
-				resMem = 2;
+				meme = 2;
 			}
-			if(strcmp(tok.mnemonic, "RESW") == 0)
+			
+			if(strcmp(token.mnemonic, "RESW") == 0)
 			{
-				resMem = 3 * (int)strtol(tok.operand, NULL, 10);
+				meme = 3 * (int)strtol(token.operand, NULL, 10);
 			}
-			if(strcmp(tok.mnemonic, "RESB") == 0)
+			
+			if(strcmp(token.mnemonic, "RESB") == 0)
 			{
-				resMem = (int)strtol(tok.operand, NULL, 10);
-				resMem = decToHexa(resMem);
+				meme = (int)strtol(token.operand, NULL, 10);
+				meme = toHex(meme);
 			}
-			if(strcmp(tok.mnemonic, "BYTE") == 0 && _ERROR == NOERROR)
+			
+			if(strcmp(token.mnemonic, "BYTE") == 0 && _ERROR == NO_ERROR)
 			{
-				//printf("%c\n", tok.operand[strlen(tok.operand) -1 ]);
-
-				if(tok.operand[0] != 'X' && tok.operand[0] != 'C') _ERROR = INVALID_OPERAND; //NOT A C or an X at the start of byte
+				if(token.operand[0] != 'X' && token.operand[0] != 'C') 
+					_ERROR = INVALID_OPERAND; //this means its not AC or X
+				
 				else
 				{
-					if(tok.operand[0] == 'C')
+					if(token.operand[0] == 'C')
 					{
-						//TEMP VARIABLES
 						int charCount = 0;
 						int index = 2;
-						while(tok.operand[index++] != '\'')
+						
+						while(token.operand[index++] != '\'')
 						{
 							charCount++;
 						}
-						resMem += charCount * 2;
+						
+						meme += charCount * 2;
 					}
-					else if(tok.operand[0] == 'X')
+					
+					else if(token.operand[0] == 'X')
 					{
-						char *hex = (char*) malloc(6); // Allocating Memory for HEX
 						int index = 1;
+						char *hex = (char*) malloc(6); 
 
-						int hexInx = 0;
+						int iHex = 0;
 
-						while(tok.operand[index++] != '\0')
+						while(token.operand[index++] != '\0')
 						{
-							if(tok.operand[index] == '\'') continue;// Making sure it doesnt break
-							hex[hexInx] = tok.operand[index]; // copying whats inside;
-							hexInx++;
+							if(token.operand[index] == '\'') 
+								continue; // this is a safety net
+							hex[iHex] = token.operand[index]; //takes whats inside
+							iHex++;
 						}
-						int hexd = (int)strtol(hex, NULL, 16);
-						resMem =  hexd;
+						
+						int hexr = (int)strtol(hex, NULL, 16);
+						meme =  hexr; //hax0r memer
 					}
 				}
-				//else
-				//{
-				//	if(tok.operand[0] == 'X')
-				//}
-				if(tok.operand[1] != '\'' ||  tok.operand[strlen(tok.operand)-1] != '\'') _ERROR = INVALID_OPERAND; //Missing ' at the start and the end '
+				
+				if(token.operand[1] != '\'' ||  token.operand[strlen(token.operand)-1] != '\'')
+					_ERROR = INVALID_OPERAND; //checks for missing 's
 			}
-			//if(strcmp(tok.mnemonic, "END") == 0 && strcmp(tok.operand, symbols[1]) > 0 || strcmp(tok.operand, symbols[1]) < 0 && _ERROR == NOERROR) _ERROR = INVALID_OPERAND;
-			if(strcmp(tok.mnemonic, "START") == 0 || strcmp(tok.mnemonic, "RESB") == 0 || strcmp(tok.mnemonic, "RESW") == 0)
+			
+			
+			if(strcmp(token.mnemonic, "START") == 0 || strcmp(token.mnemonic, "RESB") == 0 || strcmp(token.mnemonic, "RESW") == 0)
 			{
-				for(int i = 0; i < strlen(tok.operand); ++i)
+				for(int i = 0; i < strlen(token.operand); ++i)
 				{
-					if(!isdigit(tok.operand[i]))
+					if(!isdigit(token.operand[i])) //I DONT KNOW THIS COMMAND
 					{
 					    _ERROR = INVALID_OPERAND;
 						break;
 					}
 				}
 			}
-			//======================================
-			//PRINTING TO THE INTERMEDIATE
-			fprintf(intermediate, "%d\t %s\t %s\t %s\t %d\n", addressCounter, tok.label, tok.mnemonic, tok.operand, _ERROR);
-			fprintf(symbolTable, "%d\t %s\n", addressCounter, tok.label);
-			//ADD TO LABEL STRUCT
+			
+			
+			//intermediate
+			fprintf(intermediate, "%d\t %s\t %s\t %s\t %d\n", addressCounter, token.label, token.mnemonic, token.operand, _ERROR);
+			fprintf(symbolTable, "%d\t %s\n", addressCounter, token.label);
+			
+			//adds labels
 			addLabel(addressCounter);
-			//=======================
-			//Increment Address Location
-			if(strcmp(tok.mnemonic, "BYTE") == 0) addressCounter += resMem;
-			else if(strcmp(tok.mnemonic, "RESB") == 0) addressCounter += resMem;
-			else if(strcmp(tok.mnemonic, "RESW") == 0) addressCounter += resMem;
-			else if(strcmp(tok.mnemonic, "WORD") == 0) addressCounter += resMem;
-			else if(strcmp(tok.mnemonic, "START") > 0 || strcmp(tok.mnemonic, "START") < 0) addressCounter += 3;
+			
+			//Incrementation
+			if(strcmp(token.mnemonic, "BYTE") == 0) 
+				addressCounter += meme;
+			
+			else if(strcmp(token.mnemonic, "RESB") == 0) 
+				addressCounter += meme;
+			
+			else if(strcmp(token.mnemonic, "RESW") == 0) 
+				addressCounter += meme;
+			
+			else if(strcmp(token.mnemonic, "WORD") == 0) 
+				addressCounter += meme;
+			
+			else if(strcmp(token.mnemonic, "START") > 0 || strcmp(token.mnemonic, "START") < 0) 
+				addressCounter += 3;
 
 
 		}
-		else // NO LABEL
+		
+		else 
 		{
 			if(strcmp(token, "BYTE") == 0 || strcmp(token, "START") == 0 || strcmp(token, "WORD") == 0 || strcmp(token, "RESB") == 0 || strcmp(token, "RESW") == 0) _ERROR = INVALID_LABEL;	
 			if(strcmp(token, "RSUB") == 0)
 			{
-				//addressCounter += 3; //CHANGE MEMORY LOCATION
 				fprintf(intermediate, "%d\t\t %s\t\t %d\n", addressCounter, token, _ERROR);
 				addressCounter += 3;
-				continue;
+				continue; //continues on the loop
 			}
 
-			strcpy(tok.mnemonic, token);
+			strcpy(token.mnemonic, token);
 			token = strtok(NULL, " \t\r\n\v\f");
+			
 			if(token == NULL)
 			{
 				 _ERROR = MISS_OPERAND;
-				strcpy(tok.operand, " ");	
+				strcpy(token.operand, " ");	
 			}
-			else strcpy(tok.operand, token);
-			if(_Error && _ERROR == NOERROR)
+			
+			else 
+				strcpy(token.operand, token);
+			
+			
+			
+			
+			//THESE ARE THE ERRORS
+			if(_Error && _ERROR == NO_ERROR)
 			{
-				for(int x = 0; x < NUMELEM(Ops); ++x)
+				for(int x = 0; x < DISTANCE(opcode); ++x)
 				{
-					if(strcmp(Ops[x].OP, tok.mnemonic) == 0) //If its the same
+					if(strcmp(opcode[x].OP, token.mnemonic) == 0) //same ones
 					{
 						_Error = false;
 						break;
 					}
 				}
-				if(strcmp(tok.mnemonic, "START") == 0) _Error = false;
-				else if(strcmp(tok.mnemonic, "END") == 0) _Error = false;
-				else if(strcmp(tok.mnemonic, "BYTE") == 0) _Error  = false;
-				else if(strcmp(tok.mnemonic, "WORD") == 0) _Error = false;
-				else if(strcmp(tok.mnemonic, "RESB") == 0)  _Error = false;
-				else if(strcmp(tok.mnemonic, "RESW") == 0)  _Error = false;
-			}
-
-			if(_Error)
-				_ERROR = INVALID_MNEMONIC;
-
-			//Check for illegal operands
-
-			//Things to check
-
-			//1. C'Char'
-			//2. X'Char'
-			if(strcmp(tok.operand, "BYTE") == 0 && _ERROR == NOERROR) //ALREADY ADDED TO COUNTER INSIDE
-			{
-				//Check for opening ' and closing '
-				if(tok.operand[1] != '\'' || tok.operand[strlen(tok.operand) - 1] != '\'') _ERROR = INVALID_OPERAND;
-			}
-
-			//If It doesnt not start with ' or does not end with '
-
 				
+				if(strcmp(token.mnemonic, "START") == 0)
+					_Error = false;
+				else if(strcmp(token.mnemonic, "END") == 0)
+					_Error = false;
+				else if(strcmp(token.mnemonic, "BYTE") == 0) 
+					_Error  = false;
+				else if(strcmp(token.mnemonic, "WORD") == 0) 
+					_Error = false;
+				else if(strcmp(token.mnemonic, "RESB") == 0)  
+					_Error = false;
+				else if(strcmp(token.mnemonic, "RESW") == 0)  
+					_Error = false;
+			}
 
+			if(_Error) //OBFUSCATED CODE
+				_ERROR = INVALID_MNEMONIC;
+			
+			if(strcmp(token.operand, "BYTE") == 0 && _ERROR == NO_ERROR) //counter has been added
+			{
+				if(token.operand[1] != '\'' || token.operand[strlen(token.operand) - 1] != '\'') //THIS CHECKS FOR THE ''''''''''s
+					_ERROR = INVALID_OPERAND;
+			}
 
-			//End of Checking illegal operands
-//			strcpy(tok.operand, token);
-//			printf("This is the operand: \n", tok.operand);
-			//Write to File
-			//CHANGE MEMORY LOCATION
-			//addressCounter += 3;
-			fprintf(intermediate, "%d\t\t %s\t %s\t %d \n", addressCounter, tok.mnemonic, tok.operand, _ERROR);
+			fprintf(intermediate, "%d\t\t %s\t %s\t %d \n", addressCounter, token.mnemonic, token.operand, _ERROR);
 			addressCounter += 3;
 		}
-		//Call ASSEMBLER HERE....
+		//this is an assembler call set for phase 3, it doesnt do anything right now
 		assemble(symbolTable, intermediate);
 
 	}
-
-
-	//printf(" LABEL: %s\n MNEMONIC: %s\n OPERAND: %s\n", tok.label, tok.mnemonic, tok.operand);
 
 	fclose(intermediate);
 	fclose(source);
@@ -524,25 +655,34 @@ void loadFile(char *p1, char *buff) //Loads a files ITS ASSEMBLE :-(
 	fclose(symbolTable);
 
 }
+
+
 void exe(char *buff) //Executes Loaded File
 {
 	printf("Executing File\n");
 	printf("%s\n",buff);
 }
-void db() //open in debug mode
+
+
+void debug() //open in debug mode
 {
 	printf("Opening in debug Mode\n");
 }
-void dmp(char *p1, char *p2) //Dump files
+
+
+void dump(char *param1, char *param2) //Dump files
 {
 	printf("Dumping\n");
 }
 
-void err() //Shows Error
+
+void error() //Shows Error
 {
-	printf("Error Try Again.\n");
+	printf("Error, Try Again.\n");
 }
-void hlp() //Shows Available commads
+
+
+void help() //Shows Available commads
 {
 	printf("load [filename]\nexecute\ndebug\ndump [start] [end]\nassemble [filename]\n");
 }

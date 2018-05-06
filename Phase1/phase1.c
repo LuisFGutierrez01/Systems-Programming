@@ -1,4 +1,4 @@
-//Programmer: Luis gutierrez
+//Programmer: Luis Gutierrez
 //Section: 3334 Monday / Wednesday
 //Phase 1+2?
 
