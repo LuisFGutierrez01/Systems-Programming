@@ -76,7 +76,7 @@ int main()
 	//can use this to define enums in c ALL CAPS BECUASE CASES
 	int len, n;
 	typedef enum {ERROR = -1,LOAD,EXECUTE,DEBUG,DUMP,DIRECTORY,ASSEMBLE,HELP,EXIT} COMMAND;  
-	char ans[80], cmd[50], params1[50], param2[50];
+	char ans[80], cmd[50], params1[50], params2[50];
 	char buff[255]; //buffer to make sure they dont go over
 	
 	
@@ -95,7 +95,7 @@ int main()
 		if(ans[len] == '\n') 
 			ans[len] = '\0';
 
-		split(ans,cmd,params1,param2,&n); //splits answer into words command, parameter1, parameter2
+		split(ans,cmd,params1,params2,&n); //splits answer into words command, parameter1, parameter2
 		
 		
 		//gets command using cases
@@ -114,7 +114,7 @@ int main()
 				break;
 				
 			case DUMP:
-				dump(params1,param2);
+				dump(params1,params2);
 				break;
 				
 			case HELP:
@@ -188,17 +188,17 @@ int toHex(int n)
     	tempArray[tempIndex++] = hexaDeciNum[length--];
     }
 	
-    return (int)strtol(temp, NULL, 10);
+    return (int)strtol(tempArray, NULL, 10);
 }
 
 
 
 
 
-void split(char *str, char *c, char *params1, char *param2, int *n) //splits the answer into words
+void split(char *str, char *c, char *params1, char *params2, int *n) //splits the answer into words
 {
 	bool param1 = false, param2 = false, cmd = false;
-	c[0] = params1[0] = param2[0] = '\0'; //initializes with empty characters
+	c[0] = params1[0] = params2[0] = '\0'; //initializes with empty characters
 	int indexCtr = 0, count = 1; //used to keep track of and manage the index pointer
 	
 	//Loops through the entire line
@@ -216,7 +216,7 @@ void split(char *str, char *c, char *params1, char *param2, int *n) //splits the
 			if(params1[0] != '\0')
 			{param1 = true;}// if param1 is epmty
 		
-			if(param2[0] != '\0')
+			if(params2[0] != '\0')
 			{param2 = true;}// if param2 is empty
 		
 			indexCtr = 0;//reset index
@@ -247,9 +247,9 @@ void split(char *str, char *c, char *params1, char *param2, int *n) //splits the
 			
 			if(param2 == false) // Goes into param2
 			{
-				param2[indexCtr] = str[i];
+				params2[indexCtr] = str[i];
 				indexCtr++;
-				param2[indexCtr] = '\0';
+				params2[indexCtr] = '\0';
 				continue;
 			}
 		}		
@@ -670,7 +670,7 @@ void debug() //open in debug mode
 }
 
 
-void dump(char *params1, char *param2) //Dump files
+void dump(char *params1, char *params2) //Dump files
 {
 	printf("Dumping\n");
 }
