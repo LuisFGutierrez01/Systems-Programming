@@ -76,7 +76,7 @@ int main()
 	//can use this to define enums in c ALL CAPS BECUASE CASES
 	int len, n;
 	typedef enum {ERROR = -1,LOAD,EXECUTE,DEBUG,DUMP,DIRECTORY,ASSEMBLE,HELP,EXIT} COMMAND;  
-	char ans[80], cmd[50], param1[50], param2[50];
+	char ans[80], cmd[50], params1[50], param2[50];
 	char buff[255]; //buffer to make sure they dont go over
 	
 	
@@ -95,14 +95,14 @@ int main()
 		if(ans[len] == '\n') 
 			ans[len] = '\0';
 
-		split(ans,cmd,param1,param2,&n); //splits answer into words command, parameter1, parameter2
+		split(ans,cmd,params1,param2,&n); //splits answer into words command, parameter1, parameter2
 		
 		
 		//gets command using cases
 		switch(getcmd(cmd, &n)) 
 		{
 			case LOAD:
-				loadFile(param1,buff);
+				loadFile(params1,buff);
 				break;
 				
 			case EXECUTE:
@@ -114,7 +114,7 @@ int main()
 				break;
 				
 			case DUMP:
-				dump(param1,param2);
+				dump(params1,param2);
 				break;
 				
 			case HELP:
@@ -195,10 +195,10 @@ int toHex(int n)
 
 
 
-void split(char *str, char *c, char *param1, char *param2, int *n) //splits the answer into words
+void split(char *str, char *c, char *params1, char *param2, int *n) //splits the answer into words
 {
 	bool param1 = false, param2 = false, cmd = false;
-	c[0] = param1[0] = param2[0] = '\0'; //initializes with empty characters
+	c[0] = params1[0] = param2[0] = '\0'; //initializes with empty characters
 	int indexCtr = 0, count = 1; //used to keep track of and manage the index pointer
 	
 	//Loops through the entire line
@@ -213,7 +213,7 @@ void split(char *str, char *c, char *param1, char *param2, int *n) //splits the 
 			if(c[0] != '\0')
 			{cmd = true;} // if array is empty
 		
-			if(param1[0] != '\0')
+			if(params1[0] != '\0')
 			{param1 = true;}// if param1 is epmty
 		
 			if(param2[0] != '\0')
@@ -239,9 +239,9 @@ void split(char *str, char *c, char *param1, char *param2, int *n) //splits the 
 			
 			if(param1 == false) // goes into param1
 			{
-				param1[indexCtr] = str[i];
+				params1[indexCtr] = str[i];
 				indexCtr++;
-				param1[indexCtr] = '\0';
+				params1[indexCtr] = '\0';
 				continue;
 			}
 			
@@ -361,18 +361,18 @@ void assemble(FILE *sTable, FILE *inter)
 
 
 //loads files
-void loadFile(char *param1, char *buff) 
+void loadFile(char *params1, char *buff) 
 {
 	//ITS ALL ENUMS
 	typedef enum { NO_ERROR = 0, INVALID_MNEMONIC, INVALID_LABEL, INVALID_OPERAND, DUP_LABEL, MIS_START, MISS_OPERAND, TO_MANY_LABELS, PROG_LONG } ERRORS;
 	int startingAddress, addressCounter;
-	char line[500]; // String for each line in the files "param1"
+	char line[500]; // String for each line in the files "params1"
 	char *token; 	//STRTOK
 	
 	const char *symbols[500]; //Keep track of labels
 	
 	//Opening READ only FILES
-	source = fopen(param1, "r");
+	source = fopen(params1, "r");
 	opcode = fopen("opcode.txt","r");
 	
 	
@@ -399,7 +399,7 @@ void loadFile(char *param1, char *buff)
 	int labelCounter = 0; //Keep track of labels
 	
 	
-	//reading from "param1"
+	//reading from "params1"
 	while(fgets(line, 500, source))
 	{
 		bool labelHERE = true, _Error = true;
@@ -670,7 +670,7 @@ void debug() //open in debug mode
 }
 
 
-void dump(char *param1, char *param2) //Dump files
+void dump(char *params1, char *param2) //Dump files
 {
 	printf("Dumping\n");
 }
