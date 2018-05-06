@@ -63,7 +63,7 @@ typedef struct {
 } OPCODE; //this is the type name that will be used
 
 //short is in hex
-OPCODE opcode[] = {{"ADD", 18}, {"AND", 58}, {"COMP", 28}, {"DIV", 24}, {"J", 3}, {"JEQ", 3}, {"JGT", 3}, {"JLT", 3},
+OPCODE opcodes[] = {{"ADD", 18}, {"AND", 58}, {"COMP", 28}, {"DIV", 24}, {"J", 3}, {"JEQ", 3}, {"JGT", 3}, {"JLT", 3},
 				{"JSUB", 3}, {"LDA", 3}, {"LDCH", 3}, {"LDL", 3}, {"LDX", 3}, {"MUL", 3}, {"OR", 3}, {"RD", 3},
                 {"RSUB", 3}, {"STA", 3}, {"STCH", 3}, {"STL", 3}, {"STX", 3}, {"SUB", 3}, {"TD", 3}, {"TIX", 3}, {"WD", 3}};
 
@@ -451,9 +451,9 @@ void loadFile(char *param1, char *buff)
 			//mnemonic check
 			if( _ERROR == NO_ERROR)
 			{
-				for(int x = 0; x < DISTANCE(opcode); ++x)
+				for(int x = 0; x < DISTANCE(opcodes); ++x)
 				{
-					if(strcmp(opcode[x].OP, token.mnemonic) == 0) 
+					if(strcmp(opcodes[x].OP, token.mnemonic) == 0) 
 						_Error = false;
 				}
 				
@@ -609,9 +609,9 @@ void loadFile(char *param1, char *buff)
 			//THESE ARE THE ERRORS
 			if(_Error && _ERROR == NO_ERROR)
 			{
-				for(int x = 0; x < DISTANCE(opcode); ++x)
+				for(int x = 0; x < DISTANCE(opcodes); ++x)
 				{
-					if(strcmp(opcode[x].OP, token.mnemonic) == 0) //same ones
+					if(strcmp(opcodes[x].OP, token.mnemonic) == 0) //same ones
 					{
 						_Error = false;
 						break;
