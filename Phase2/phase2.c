@@ -277,10 +277,14 @@ int getcmd(char *c, int *n)
 	}
 	
 	else if(strcmp(c, "execute") == 0 || strcmp(c, "exe") == 0)
+	{
 		return 1;
+	}
 	
 	else if(strcmp(c, "debug") == 0)
+	{
 		return 2;
+	}
 	
 	else if(strcmp(c, "dump") == 0)
 	{
@@ -292,7 +296,9 @@ int getcmd(char *c, int *n)
 	}
 	
 	else if(strcmp(c, "help") == 0) 
+	{
 		return 4;
+	}
 	
 	else if(strcmp(c, "assemble") == 0 || strcmp(c, "ass") == 0)
 	{
@@ -303,7 +309,9 @@ int getcmd(char *c, int *n)
 	}
 	
 	else if(strcmp(c, "dir") == 0 || strcmp(c, "directory") == 0) 
+	{
 		return 6;
+	}
 	
 	else if(strcmp(c, "exit") == 0)
 	{
