@@ -297,7 +297,7 @@ int getcmd(char *c, int *n)
 	
 	else if(strcmp(c, "help") == 0) 
 	{
-		return 4;
+		return 6;
 	}
 	
 	else if(strcmp(c, "assemble") == 0 || strcmp(c, "ass") == 0)
@@ -310,7 +310,7 @@ int getcmd(char *c, int *n)
 	
 	else if(strcmp(c, "dir") == 0 || strcmp(c, "directory") == 0) 
 	{
-		return 6;
+		return 4;
 	}
 	
 	else if(strcmp(c, "exit") == 0)
