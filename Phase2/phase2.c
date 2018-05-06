@@ -692,5 +692,5 @@ void error() //Shows Error
 
 void help() //Shows Available commads
 {
-	printf("load [filename]\nexecute\ndebug\ndump [start] [end]\nassemble [filename]\n");
+	printf("load [filename] execute debug dump [start] [end] assemble [filename]\n");
 }
